@@ -1,50 +1,94 @@
-# Project Tracker
+# Invictus Project Tracker
 
-A small, mobile-first project tracker that runs entirely in your browser. It is one `index.html` file with no frameworks, no build step and no external dependencies.
+A mobile-first deal and project tracker for Invictus, styled to the Invictus brand guidelines. It runs entirely in your browser: one `index.html` file with no frameworks, no build step and no external requests. The Poppins font, the logo and the Africa map are all embedded in the file.
 
 ## Features
 
-- **Dashboard strip:** counts by status, plus how many projects are overdue and how many are due in the next 7 days. Tap a tile to filter by it.
-- **Project list:** sorted by due date (projects with no due date come last and Done projects sit at the bottom). You can search and filter by status, category, priority and due date.
-- **Highlighting:** projects and tasks that are overdue are marked red, and those due within 7 days are marked amber.
-- **Projects:** name, category (Work/Personal), status, priority, owner, start and due dates, next action, notes, and a checklist of tasks. Progress is the percentage of tasks done.
-- **Detail view:** tap a project to see its details and tick off tasks. Add, edit and delete projects and tasks through forms. Every delete asks for confirmation first.
-- **Backup:** export to JSON (full backup) or CSV (for spreadsheets), and import from JSON.
-- **Dark mode:** follows your phone's or computer's system setting automatically.
+### Dashboard
+- **Urgency summary:** counts of open items by tier (Critical, High, Medium, Low) and the number of at-risk projects. Tap a tier to filter the deadline list; tap "At-risk projects" to open those projects.
+- **Africa project map:** every project with a location is pinned on the map.
+  - Each pin is labelled with target equity and deal type, e.g. "51% JV".
+  - **Red** means blocked or has a critical item, **amber** means at risk or has a high-urgency item, and **blue** means on track. Red pins pulse.
+  - Pins that are close together are grouped into a numbered circle. Tap a pin or group to see the projects and why they're flagged.
+  - Pinch, double-tap or use the + / − buttons to zoom, and drag to pan when zoomed in. Chips above the map filter by deal type.
+- **Upcoming deadlines:** project due dates, tasks and milestones in one list, grouped by urgency tier.
+- **Deal mix:** number of projects and average target equity for each deal type.
+- **Scope and owner:** switch between All, Pipeline (deals) and Portfolio (acquired), and filter by owner.
 
-## Enabling GitHub Pages
+### Projects
+- Fields: name, stage, risk status and risks/blockers, deal type (Full Buyout, Joint Venture, Minority, Associate), target equity %, sector, country, city/site, map pin, owner, priority, start and due dates, next action and notes.
+- **Stages** cover the whole lifecycle:
+  - Pipeline: Origination → Screening → Due diligence → Negotiation / Term sheet → Signing → Closing.
+  - Portfolio: Integration planning → Day 1–100 → Integration ongoing → Integrated.
+  - Also: On hold and Dropped.
+  - A deal at Closing shows a **Move to portfolio** button.
+- **Region** (North, West, Central, East or Southern Africa) is set automatically from the country.
+- **Map pins:** choosing a country places the pin at that country's capital. Use **Set pin on map** to tap the exact location. Nothing is looked up online.
+- The form warns when equity doesn't fit the deal type, for example a Full Buyout below 100%.
+- The list is sorted by due date, with search and filters for stage, deal type, alert level, region, sector and owner.
 
-1. Push this repository to GitHub, with `index.html` at the root of the `main` branch.
-2. On GitHub, open the repository and go to **Settings → Pages**.
-3. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
-4. Set **Branch** to `main` and the folder to `/ (root)`, then click **Save**.
-5. After a minute or two the site is live at `https://<your-username>.github.io/<repository-name>/`. The Pages settings screen shows the exact link.
+### Tasks
+- Create tasks, assign an owner, set a due date, status (To do, In progress, Blocked, Done) and priority, mark milestones, and link each task to a project.
+- Tasks are grouped by urgency tier. Change status from the list, or tick the box to mark a task done.
+- Filter by owner, project, status or tier. Completed tasks are hidden unless you turn on "Show completed".
 
-Tip: on your phone, open the link and use **Add to Home Screen** (Safari share menu, or the Chrome ⋮ menu) so it opens like an app.
+### Urgency tiers
+| Tier | Rule |
+|---|---|
+| **Critical** | Overdue, due within 2 days, blocked, or an open milestone due within 7 days |
+| **High** | Due within 7 days, or High priority and due within 14 days |
+| **Medium** | Due within 30 days |
+| **Low** | Due later, or no due date |
 
-The empty `.nojekyll` file tells GitHub Pages to serve the files as they are, without running Jekyll.
+Finished tasks, and projects that are Integrated or Dropped, have no tier.
+
+### People and sectors
+Open **Settings** (the icon at the top right) to manage the People list and the Sectors list. Everyone in the People list can be tagged as an owner. You can also add a person straight from any Owner dropdown with "+ Add person…".
+
+People are tags, not user accounts. Nobody logs in or gets notifications.
+
+### Other
+- Automatic dark mode that follows your device setting.
+- Works offline once the page has loaded.
 
 ## Where your data is stored
 
-All project data is saved in your browser's **localStorage**, under the key `projectTracker.v1`. This means:
+All data is saved in your browser's **localStorage** under the key `invictusTracker.v2`. This means:
 
-- Nothing is sent to any server, and no project data is ever committed to this repository. GitHub Pages only serves the app itself.
-- Data belongs to **one browser on one device**. Your phone and your laptop each keep their own separate copy, and so do different browsers on the same device.
-- Clearing your browser's site data or history for the site, or uninstalling the browser, **deletes your projects**. Private/incognito windows throw their data away when closed.
-- Safari may clear storage for sites you haven't visited in a while. A site added to the Home Screen is exempt from this, which is another reason to add it.
+- Nothing is sent to any server, and no project data is ever committed to this repository. The host only serves the app's code.
+- Data belongs to **one browser on one device**. Your phone and laptop each keep their own copy.
+- Clearing your browser's site data **deletes your projects**. Private/incognito windows lose their data when closed.
+- Safari may clear storage for sites you haven't visited for a while. Adding the site to your Home Screen avoids this.
+
+**Upgrading from the first version:** existing data (key `projectTracker.v1`) is upgraded automatically the first time you open this version. Checklist items become linked tasks, statuses map to the nearest stage, owners become People, and categories become Sectors. The old copy is left untouched as a safety net.
 
 ## Backing up and moving data
 
-Tap **Backup** in the top-right corner:
+Open **Settings → Backup & restore**:
 
-- **Export JSON (full backup):** downloads `projects-YYYY-MM-DD.json` with everything, including tasks. Keep this file somewhere safe, such as iCloud Drive, Google Drive or email to yourself. Export regularly.
-- **Export CSV (spreadsheet):** downloads one row per project, with its tasks listed in the last column. Use it for viewing in Excel or Google Sheets. This is a report, so it can't be imported back.
-- **Import JSON…:** choose a JSON file you exported earlier. You then get two choices:
-  - **Merge with existing:** adds the imported projects. A project with the same ID as one you already have is overwritten by the imported copy.
-  - **Replace all existing data:** deletes what is currently in this browser and loads the file instead. It asks you to confirm first.
+- **Export JSON (full backup):** everything, including people, sectors and tasks. Save it somewhere private, such as iCloud Drive, Google Drive or a password manager.
+- **Projects CSV / Tasks CSV:** spreadsheet reports. These can't be imported back.
+- **Import JSON…:** load a backup. Choose **Merge** to add or update by ID (people with the same name are matched) or **Replace** to swap out everything (asks for confirmation). Backups from the first version of the tracker can also be imported.
 
-**To move to a new device:** export JSON on the old device, get the file onto the new device (AirDrop, cloud drive, email), open the tracker there, and import it.
+To move to another device, export JSON on the old one, get the file onto the new one, then import it.
+
+**Never put backup files in this GitHub repository**, especially if it's public. Anyone who can see the repo could read them, and Git keeps old versions even after you delete a file.
+
+## Hosting
+
+The app is a single static file, so any static host works.
+
+**GitHub Pages:** go to **Settings → Pages**, choose **Deploy from a branch**, branch `main`, folder `/ (root)`, and save. On the free GitHub plan this needs a public repository.
+
+**Cloudflare Pages or Netlify (free, repository can stay private):** connect your GitHub account, pick this repository, leave the build command empty, and set the output directory to `/`.
+
+In every case, the site itself is reachable by anyone with the link, but each visitor sees only the data in their own browser.
 
 ## Running locally
 
-Open `index.html` directly in a browser, or serve the folder with any static server, for example `python3 -m http.server`, then visit http://localhost:8000.
+Open `index.html` in a browser, or run `python3 -m http.server` in this folder and visit http://localhost:8000.
+
+## Credits
+
+- Font: [Poppins](https://github.com/itfoundry/Poppins), SIL Open Font License 1.1 (see `LICENSE-Poppins-OFL.txt`).
+- Map outlines: simplified from [Natural Earth](https://www.naturalearthdata.com/) (public domain) via the `world-atlas` package.
