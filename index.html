@@ -231,6 +231,28 @@
   @media (prefers-reduced-motion: reduce) { .pin.lvl-red .halo { animation: none; } }
   .pin.pick path { fill: var(--accent); stroke: var(--white); stroke-width: 2; }
   .pin.pick circle { fill: var(--dark-navy); stroke: none; }
+  .map-land path[data-code] { cursor: pointer; }
+  .map-land path.hover { fill: #4A5A8E; stroke: var(--white); }
+  .map-tip { position: absolute; z-index: 2; pointer-events: none; background: var(--white); color: var(--dark-navy); font: 600 12.5px/1.3 var(--font); padding: 5px 9px; border-radius: 8px; box-shadow: 0 4px 14px rgba(9,16,50,.35); white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); }
+  .map-tip small { display: block; font-weight: 400; color: var(--grey); }
+  .country-jump { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .country-jump select { background-color: rgba(9,16,50,.5); color: var(--white); border-color: rgba(189,195,214,.35); min-height: 44px; }
+  .fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fin-card { padding: 14px; margin-top: 14px; }
+  .fin-row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid var(--hairline); font-size: 14.5px; }
+  .fin-row:first-of-type { border-top: 0; }
+  .fin-row .fv { font-weight: 600; text-align: right; }
+  .implied { font-size: 11px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+  .split { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--surface-2); margin: 6px 0 2px; }
+  .split .d { background: var(--navy); } .split .e { background: var(--accent); }
+  @media (prefers-color-scheme: dark) { .split .d { background: var(--blue-grey); } }
+  .split-legend { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); }
+  .hint { font-size: 13.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .hint .linkbtn { min-height: 32px; padding: 2px 4px; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+  .stat { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+  .stat .n { font-size: 18px; font-weight: 700; overflow-wrap: anywhere; }
+  .stat .l { font-size: 12px; color: var(--muted); }
   .map-ctrl { position: absolute; right: 8px; top: 8px; display: grid; gap: 6px; }
   .map-ctrl button { width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgba(189,195,214,.3); background: rgba(9,16,50,.78); color: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; }
   .map-ctrl .icon { width: 18px; height: 18px; }
@@ -383,6 +405,7 @@
   <section id="view-projects" hidden></section>
   <section id="view-tasks" hidden></section>
   <section id="view-detail" class="detail" hidden></section>
+  <section id="view-country" class="detail" hidden></section>
 </main>
 
 <button class="fab" id="fab" type="button"></button>
@@ -405,6 +428,18 @@
           </div>
           <div class="warn" id="equityWarn" role="status"></div>
           <label><span>Risks / blockers</span><textarea name="riskNote" maxlength="2000" placeholder="What could stop or delay this deal?"></textarea></label>
+        </fieldset>
+        <fieldset><legend>Valuation &amp; financing <span class="note" style="font-weight:400">(in millions)</span></legend>
+          <label><span>Currency</span><select name="currency"></select></label>
+          <div class="fin-grid">
+            <label><span>Enterprise value</span><input type="number" name="ev" step="any" min="0" inputmode="decimal"></label>
+            <label><span>Equity value</span><input type="number" name="eqv" step="any" min="0" inputmode="decimal"></label>
+            <label><span>Net debt</span><input type="number" name="netDebt" step="any" inputmode="decimal" placeholder="Negative = net cash"></label>
+            <span></span>
+            <label><span>Debt financing</span><input type="number" name="debtFin" step="any" min="0" inputmode="decimal"></label>
+            <label><span>Equity financing</span><input type="number" name="eqFin" step="any" min="0" inputmode="decimal"></label>
+          </div>
+          <div class="hint" id="finHint" role="status"></div>
         </fieldset>
         <fieldset><legend>Location</legend>
           <div class="two">
@@ -482,6 +517,29 @@
 <dialog id="pinDlg" aria-labelledby="pinDlgTitle">
   <div class="dbody"><h2 id="pinDlgTitle">Projects</h2><div id="pinList"></div></div>
   <div class="dactions"><button type="button" class="btn" data-close>Close</button></div>
+</dialog>
+
+<!-- Country profile form -->
+<dialog id="countryDlg" aria-labelledby="countryDlgTitle">
+  <form id="countryForm" novalidate>
+    <div class="dbody">
+      <h2 id="countryDlgTitle">Country details</h2>
+      <div class="form-grid">
+        <div class="two">
+          <label><span>Country risk rating</span><select name="risk"></select></label>
+          <label><span>Local currency</span><input type="text" name="currency" maxlength="40" autocomplete="off" placeholder="e.g. NGN"></label>
+        </div>
+        <label><span>Key contacts</span><textarea name="contacts" maxlength="4000" placeholder="Advisers, partners, officials…"></textarea></label>
+        <label><span>Regulatory / legal notes</span><textarea name="regulatory" maxlength="6000" placeholder="Approvals, FDI rules, competition authority, tax…"></textarea></label>
+        <label><span>Market notes</span><textarea name="market" maxlength="6000" placeholder="Market size, competitors, macro, FX…"></textarea></label>
+        <label><span>Other notes</span><textarea name="notes" maxlength="10000"></textarea></label>
+      </div>
+    </div>
+    <div class="dactions">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn primary">Save</button>
+    </div>
+  </form>
 </dialog>
 
 <!-- Settings -->
@@ -592,6 +650,14 @@
     ['#1B254C', '#FFFFFF'], ['#8FDDFF', '#091032'], ['#5A6488', '#FFFFFF'], ['#0B7FB0', '#FFFFFF']];
   const LEVEL_RANK = { red: 0, amber: 1, ok: 2 };
 
+  const CURRENCIES = ['USD', 'EUR', 'GBP', 'ZAR', 'NGN', 'KES', 'EGP', 'GHS', 'MAD', 'XOF', 'XAF', 'ETB', 'TZS', 'UGX', 'ZMW', 'AED'];
+  const FIN_FIELDS = ['ev', 'eqv', 'netDebt', 'debtFin', 'eqFin'];
+  const COUNTRY_RISKS = ['Low', 'Medium', 'High'];
+  const FID_TO_CODE = {};
+  COUNTRY_ROWS.forEach(r => { FID_TO_CODE[r[5]] = r[0]; });
+  FID_TO_CODE['706b'] = 'SO'; // Somaliland is drawn separately in the source data
+  const MAP_ONLY_NAMES = { '732': 'Western Sahara' };
+
   const KEY = 'invictusTracker.v2';
   const V1_KEY = 'projectTracker.v1';
   const UI_KEY = 'invictusTracker.ui.v1';
@@ -639,6 +705,7 @@
   }
   const pick = (v, list, dflt) => list.indexOf(v) >= 0 ? v : dflt;
   const str = (v, max) => (typeof v === 'string' ? v : (v == null ? '' : String(v))).slice(0, max || 10000);
+  const nonNeg = n => n === null || n < 0 ? null : n;
   function num(v) { const n = typeof v === 'number' ? v : parseFloat(v); return isFinite(n) ? n : null; }
   function initials(name) {
     const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -680,6 +747,9 @@
       riskNote: str(p.riskNote, 2000),
       dealType: pick(p.dealType, DEALS, ''),
       equity,
+      currency: pick(p.currency, CURRENCIES, 'USD'),
+      ev: nonNeg(num(p.ev)), eqv: nonNeg(num(p.eqv)), netDebt: num(p.netDebt),
+      debtFin: nonNeg(num(p.debtFin)), eqFin: nonNeg(num(p.eqFin)),
       sector: str(p.sector, 60).trim(),
       country, site: str(p.site, 120), lat, lng,
       ownerId: str(p.ownerId, 100),
@@ -709,6 +779,19 @@
       updatedAt: str(t.updatedAt, 40) || now
     };
   }
+  function normalizeCountry(c) {
+    c = c || {};
+    return {
+      risk: pick(c.risk, COUNTRY_RISKS, ''), currency: str(c.currency, 40).trim(),
+      contacts: str(c.contacts, 4000), regulatory: str(c.regulatory, 6000), market: str(c.market, 6000), notes: str(c.notes, 10000),
+      updatedAt: str(c.updatedAt, 40)
+    };
+  }
+  function normalizeCountries(obj) {
+    const out = {};
+    if (obj && typeof obj === 'object' && !Array.isArray(obj)) Object.keys(obj).forEach(k => { if (COUNTRIES[k] && obj[k] && typeof obj[k] === 'object') out[k] = normalizeCountry(obj[k]); });
+    return out;
+  }
   function normalizeDb(d) {
     const people = (Array.isArray(d.people) ? d.people : []).filter(x => x && typeof x === 'object').map(normalizePerson);
     const personIds = new Set(people.map(p => p.id));
@@ -725,7 +808,7 @@
       if (!personIds.has(t.ownerId)) t.ownerId = '';
       if (!projectIds.has(t.projectId)) t.projectId = '';
     });
-    return { people, sectors, projects, tasks };
+    return { people, sectors, projects, tasks, countries: normalizeCountries(d.countries) };
   }
   // Upgrades data from the first version of the tracker (projects with nested checklists).
   function migrateV1(arr) {
@@ -752,7 +835,7 @@
         tasks.push(normalizeTask({ id: t.id, projectId: p.id, title: t.text, dueDate: t.dueDate, status: t.done ? 'Done' : 'To do', ownerId: p.ownerId }));
       });
     });
-    return { people, sectors, projects, tasks };
+    return { people, sectors, projects, tasks, countries: {} };
   }
   function parseAnyData(data) {
     if (Array.isArray(data)) return migrateV1(data);
@@ -774,7 +857,7 @@
         if (d) { migratedFromV1 = true; return d; } // the v1 copy is left in place as a safety net
       }
     } catch (e) { storageOk = false; }
-    return { people: [], sectors: DEFAULT_SECTORS.slice(), projects: [], tasks: [] };
+    return { people: [], sectors: DEFAULT_SECTORS.slice(), projects: [], tasks: [], countries: {} };
   }
   function save() {
     try {
@@ -846,6 +929,44 @@
     if (!ts.length) return { pct: 0, done: 0, total: 0 };
     const done = ts.filter(t => t.status === 'Done').length;
     return { pct: Math.round(done / ts.length * 100), done, total: ts.length };
+  }
+  function fmtMoney(cur, n) {
+    if (n === null || n === undefined) return '';
+    const abs = Math.abs(n);
+    const s = abs.toLocaleString(undefined, { maximumFractionDigits: 1 });
+    return (n < 0 ? '−' : '') + cur + ' ' + s + 'm';
+  }
+  const r2 = n => Math.round(n * 100) / 100;
+  // Fills in whichever of EV / equity value / net debt is missing, using EV = equity value + net debt.
+  function valuation(p) {
+    let { ev, eqv, netDebt } = p;
+    const implied = {};
+    if (ev === null && eqv !== null && netDebt !== null) { ev = r2(eqv + netDebt); implied.ev = true; }
+    else if (eqv === null && ev !== null && netDebt !== null) { eqv = r2(ev - netDebt); implied.eqv = true; }
+    else if (netDebt === null && ev !== null && eqv !== null) { netDebt = r2(ev - eqv); implied.netDebt = true; }
+    if (ev !== null && ev < 0) ev = null;
+    if (eqv !== null && eqv < 0) eqv = null;
+    const stake = eqv !== null && p.equity !== null ? r2(eqv * p.equity / 100) : null;
+    const finTotal = p.debtFin !== null || p.eqFin !== null ? (p.debtFin || 0) + (p.eqFin || 0) : null;
+    const debtPct = finTotal ? (p.debtFin || 0) / finTotal * 100 : null;
+    return { ev, eqv, netDebt, implied, stake, finTotal, debtPct };
+  }
+  function valuationHint(v) {
+    const { ev, eqv, netDebt } = v;
+    if (ev !== null && eqv !== null && netDebt !== null) {
+      const diff = ev - (eqv + netDebt);
+      if (Math.abs(diff) > Math.max(0.05, Math.abs(ev) * 0.005)) return { warn: true, text: 'Enterprise value usually equals equity value plus net debt (' + r2(eqv + netDebt) + ').' };
+      return null;
+    }
+    if (ev === null && eqv !== null && netDebt !== null) return { field: 'ev', value: r2(eqv + netDebt), text: 'Implied enterprise value: ' + r2(eqv + netDebt) };
+    if (eqv === null && ev !== null && netDebt !== null) return { field: 'eqv', value: r2(ev - netDebt), text: 'Implied equity value: ' + r2(ev - netDebt) };
+    if (netDebt === null && ev !== null && eqv !== null) return { field: 'netDebt', value: r2(ev - eqv), text: 'Implied net debt: ' + r2(ev - eqv) };
+    return null;
+  }
+  function sumByCurrency(list, fn) {
+    const t = {};
+    list.forEach(p => { const v = fn(p); if (v !== null && v !== undefined) t[p.currency] = (t[p.currency] || 0) + v; });
+    return Object.keys(t).sort().map(c => fmtMoney(c, r2(t[c])));
   }
   function dealLabel(p) {
     const parts = [];
@@ -945,11 +1066,34 @@
     host.innerHTML = `<svg class="map-svg" viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(opts.label || 'Map of Africa')}">
       <rect class="map-sea" x="-1000" y="-1000" width="${W + 2000}" height="${H + 2000}"/>
       <path class="map-context" d="${MAP.context}"/>
-      <g class="map-land">${Object.keys(MAP.africa).map(id => `<path data-c="${id}" d="${MAP.africa[id]}"/>`).join('')}</g>
+      <g class="map-land">${Object.keys(MAP.africa).map(id => `<path data-c="${id}"${opts.onCountry && FID_TO_CODE[id] ? ` data-code="${FID_TO_CODE[id]}"` : ''} d="${MAP.africa[id]}"/>`).join('')}</g>
       <g class="map-pins"></g></svg>
+      <div class="map-tip" hidden></div>
       <div class="map-ctrl"><button type="button" data-z="in" aria-label="Zoom in">${icon('plus')}</button><button type="button" data-z="out" aria-label="Zoom out">${icon('minus')}</button><button type="button" data-z="reset" aria-label="Reset map">${icon('reset')}</button></div>`;
     const svg = host.querySelector('svg');
     const pinsG = host.querySelector('.map-pins');
+    const tip = host.querySelector('.map-tip');
+    let hoverPath = null;
+    function countryName(fid) { const c = COUNTRIES[FID_TO_CODE[fid]]; return c ? c.name : (MAP_ONLY_NAMES[fid] || ''); }
+    function hideTip() { tip.hidden = true; if (hoverPath) { hoverPath.classList.remove('hover'); hoverPath = null; } }
+    function showTip(path, cx, cy) {
+      const fid = path.getAttribute('data-c'), name = countryName(fid);
+      if (!name) { hideTip(); return; }
+      if (hoverPath !== path) { if (hoverPath) hoverPath.classList.remove('hover'); hoverPath = path; path.classList.add('hover'); }
+      const code = FID_TO_CODE[fid];
+      const extra = code && opts.countryInfo ? opts.countryInfo(code) : '';
+      tip.innerHTML = esc(name) + (extra ? '<small>' + esc(extra) + '</small>' : '');
+      const r = host.getBoundingClientRect();
+      tip.style.left = Math.max(60, Math.min(r.width - 60, cx - r.left)) + 'px';
+      tip.style.top = Math.max(40, cy - r.top) + 'px';
+      tip.hidden = false;
+    }
+    svg.addEventListener('pointerleave', hideTip);
+    svg.addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse' || ptrs.size) return;
+      const path = !e.target.closest('.pin') && e.target.closest('.map-land path');
+      if (path) showTip(path, e.clientX, e.clientY); else hideTip();
+    });
     let vb = { x: 0, y: 0, w: W, h: H };
     let pins = [], pickPt = null;
 
@@ -1016,11 +1160,12 @@
 
     // Pointer interaction: drag to pan (when zoomed), pinch to zoom, tap to select.
     const ptrs = new Map();
-    let start = null, pinch = null, moved = false, downPin = null;
+    let start = null, pinch = null, moved = false, downPin = null, downCountry = null;
     svg.addEventListener('pointerdown', e => {
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (ptrs.size === 1) {
-        moved = false; downPin = e.target.closest('.pin[data-ids]');
+        hideTip();
+        moved = false; downPin = e.target.closest('.pin[data-ids]'); downCountry = e.target.closest('.map-land path');
         start = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y };
       } else if (ptrs.size === 2) {
         const [a, b] = [...ptrs.values()];
@@ -1052,8 +1197,9 @@
         if (!moved && !cancelled) {
           if (downPin && opts.onPin) opts.onPin(downPin.getAttribute('data-ids').split(','));
           else if (opts.onPick) { const u = toUnits(e.clientX, e.clientY); const [lng, lat] = unproject(u.x, u.y); opts.onPick(Math.round(lat * 1000) / 1000, Math.round(lng * 1000) / 1000); }
+          else if (downCountry && opts.onCountry && FID_TO_CODE[downCountry.getAttribute('data-c')]) { hideTip(); opts.onCountry(FID_TO_CODE[downCountry.getAttribute('data-c')]); }
         }
-        start = null; pinch = null; downPin = null;
+        start = null; pinch = null; downPin = null; downCountry = null;
       }
     }
     svg.addEventListener('pointerup', e => end(e, false));
@@ -1099,6 +1245,7 @@
     const h = location.hash;
     let m;
     if ((m = h.match(/^#\/p\/(.+)$/))) return { view: 'detail', id: decodeURIComponent(m[1]) };
+    if ((m = h.match(/^#\/c\/([A-Z]{2})$/))) return { view: 'country', id: m[1] };
     if (h === '#/projects') return { view: 'projects' };
     if (h === '#/tasks') return { view: 'tasks' };
     return { view: 'dashboard' };
@@ -1107,16 +1254,17 @@
   function onRoute() {
     route = parseRoute();
     if (route.view === 'detail' && !findProject(route.id)) { location.replace('#/projects'); return; }
-    if (route.view !== 'detail') lastListView = route.view;
-    ['dashboard', 'projects', 'tasks', 'detail'].forEach(v => { $('view-' + v).hidden = v !== route.view; });
-    const tab = route.view === 'detail' ? 'projects' : route.view;
+    if (route.view === 'country' && !COUNTRIES[route.id]) { location.replace('#/'); return; }
+    if (route.view !== 'detail' && route.view !== 'country') lastListView = route.view;
+    ['dashboard', 'projects', 'tasks', 'detail', 'country'].forEach(v => { $('view-' + v).hidden = v !== route.view; });
+    const tab = route.view === 'detail' ? 'projects' : route.view === 'country' ? 'dashboard' : route.view;
     document.querySelectorAll('nav.tabs a').forEach(a => a.toggleAttribute('aria-current', false));
     const cur = document.querySelector(`nav.tabs a[data-tab="${tab}"]`);
     if (cur) cur.setAttribute('aria-current', 'page');
-    $('backBtn').hidden = route.view !== 'detail';
-    $('fab').hidden = route.view === 'detail';
+    $('backBtn').hidden = route.view !== 'detail' && route.view !== 'country';
+    $('fab').hidden = route.view === 'detail' || route.view === 'country';
     $('fab').textContent = route.view === 'tasks' ? '+ New task' : '+ New project';
-    document.title = { dashboard: 'Dashboard', projects: 'Projects', tasks: 'Tasks', detail: (findProject(route.id) || {}).name || 'Project' }[route.view] + ' · Invictus Project Tracker';
+    document.title = { dashboard: 'Dashboard', projects: 'Projects', tasks: 'Tasks', detail: (findProject(route.id) || {}).name || 'Project', country: (COUNTRIES[route.id] || {}).name || 'Country' }[route.view] + ' · Invictus Project Tracker';
     render();
     window.scrollTo(0, 0);
   }
@@ -1128,6 +1276,13 @@
       if (findProject(route.id)) renderDetail(findProject(route.id));
       else location.replace('#/' + (lastListView === 'dashboard' ? '' : lastListView));
     }
+    else if (route.view === 'country') renderCountry(route.id);
+  }
+  const openCountry = code => { location.hash = '#/c/' + code; };
+  function countryInfo(code) {
+    const n = db.projects.filter(p => p.country === code && p.stage !== 'Dropped').length;
+    const hasProfile = !!db.countries[code];
+    return (n ? n + (n === 1 ? ' project' : ' projects') : 'No projects') + (hasProfile ? ' · profile saved' : '') + ' · click for details';
   }
   const openProject = id => { location.hash = '#/p/' + encodeURIComponent(id); };
 
@@ -1187,6 +1342,7 @@
       return { d, n: ps.length, avg: eq.length ? eq.reduce((s, p) => s + p.equity, 0) / eq.length : null };
     });
     const maxN = Math.max(1, ...dealRows.map(r => r.n));
+    const evTotals = sumByCurrency(ownerProjects, p => valuation(p).ev);
 
     view.innerHTML = `
       <div class="dash-head">
@@ -1216,6 +1372,7 @@
             <span><i style="background:var(--pin-ok)"></i>On track</span>
             <span>Label: target equity % and deal type</span>
           </div>
+          <div class="country-jump"><label class="sr-only" for="countryJump">Open a country profile</label><select id="countryJump">${countryOptions('').replace('<option value="">Not set</option>', '<option value="">Country details…</option>')}</select></div>
           ${unplaced ? `<div class="map-note">${unplaced} project${unplaced === 1 ? ' has' : 's have'} no location yet. <button type="button" class="linkbtn" data-goto="projects">Add one from the project's Edit form.</button></div>` : ''}
         </div>
         <div class="card deadlines">
@@ -1234,12 +1391,13 @@
         </div>
         <div class="card dealmix">
           <div class="section-title"><h2>Deal mix</h2><span class="note">${ownerProjects.length} project${ownerProjects.length === 1 ? '' : 's'}</span></div>
+          ${evTotals.length ? `<p class="note" style="margin:-4px 0 8px">Total enterprise value: <b style="color:var(--text)">${esc(evTotals.join(' · '))}</b></p>` : ''}
           ${dealRows.map(r => `<div class="dm-row"><span>${esc(r.d)}</span><span class="dm-bar"><span style="width:${r.n / maxN * 100}%"></span></span><span class="dm-val">${r.n}<small>${r.avg === null ? '—' : 'avg ' + fmtPct(r.avg)}</small></span></div>`).join('')}
         </div>
       </div>`;
 
     if (dashMap) dashMap.destroy();
-    dashMap = createMap($('dashMap'), { label: 'Map of Africa showing project locations', onPin: showPinSheet });
+    dashMap = createMap($('dashMap'), { label: 'Map of Africa showing project locations', onPin: showPinSheet, onCountry: openCountry, countryInfo });
     const pinData = mapProjects.map(p => ({ id: p.id, title: p.name, lat: p.lat, lng: p.lng, level: projectAlert(p).level, label: dealLabel(p) }));
     dashMap.setPins(pinData);
     dashMap.setHighlights(new Set(mapProjects.filter(p => p.country).map(p => COUNTRIES[p.country].fid)));
@@ -1253,6 +1411,7 @@
       return `<div class="sheet-item">
         ${ps.length > 1 ? `<h3>${esc(p.name)}</h3>` : ''}
         <div class="meta">${stageBadge(p)}${dealBadge(p)}${riskBadge(p)}</div>
+        ${valuation(p).ev !== null ? `<div class="note">EV ${esc(fmtMoney(p.currency, valuation(p).ev))}${valuation(p).stake !== null ? ' · Invictus share of equity ' + esc(fmtMoney(p.currency, valuation(p).stake)) : ''}</div>` : ''}
         <div class="note">${esc(locationText(p) || 'No location')}${findPerson(p.ownerId) ? ' · ' + esc(findPerson(p.ownerId).name) : ''}</div>
         ${a.reasons.length ? `<div class="alert-box ${a.level}" style="margin:8px 0"><ul>${a.reasons.map(r => `<li>${esc(r[1])}</li>`).join('')}</ul></div>` : ''}
         <div class="progress" style="margin:6px 0 10px"><div class="bar"><span style="width:${pr.pct}%"></span></div><span>${pr.pct}% · ${pr.done}/${pr.total} tasks</span></div>
@@ -1300,7 +1459,7 @@
     const loc = locationText(p);
     return `<button type="button" class="card pcard lvl-${a.level}${projectClosed(p) ? ' inactive' : ''}" data-open="${esc(p.id)}">
       <div class="row-between" style="align-items:flex-start"><h3>${esc(p.name)}</h3>${avatar(p.ownerId)}</div>
-      <div class="meta">${stageBadge(p)}${dealBadge(p)}${riskBadge(p)}${p.sector ? `<span class="badge">${esc(p.sector)}</span>` : ''}</div>
+      <div class="meta">${stageBadge(p)}${dealBadge(p)}${riskBadge(p)}${valuation(p).ev !== null ? `<span class="badge">EV ${esc(fmtMoney(p.currency, valuation(p).ev))}</span>` : ''}${p.sector ? `<span class="badge">${esc(p.sector)}</span>` : ''}</div>
       <div class="row-between"><span class="due ${tier ? 't-' + tier : ''} ${daysUntil(p.dueDate) !== null && daysUntil(p.dueDate) < 0 && tier ? 'overdue' : ''}">${esc(dueLabel(p.dueDate, projectClosed(p)))}</span>${loc ? `<span class="note">${esc(loc)}</span>` : ''}</div>
       ${p.nextAction ? `<div class="next"><b>Next:</b> ${esc(p.nextAction)}</div>` : ''}
       <div class="progress"><div class="bar"><span style="width:${pr.pct}%"></span></div><span>${pr.pct}% · ${pr.done}/${pr.total} tasks</span></div>
@@ -1417,6 +1576,25 @@
     return `<div class="field${wide ? ' wide' : ''}"><div class="k">${esc(k)}</div><div class="v${wide ? ' pre' : ''}">${html ? v : (v ? esc(v) : '<span class="muted">—</span>')}</div></div>`;
   }
   let detailMap = null;
+  function finCard(p) {
+    const v = valuation(p), cur = p.currency;
+    const has = v.ev !== null || v.eqv !== null || v.netDebt !== null || v.finTotal !== null;
+    if (!has) return `<div class="card fin-card"><div class="section-title" style="margin:0"><h3>Valuation &amp; financing</h3></div><p class="note" style="margin:6px 0 0">No figures yet. Edit the project to add enterprise value, equity value, net debt and financing.</p></div>`;
+    const row = (k, val, imp) => `<div class="fin-row"><span>${esc(k)}</span><span class="fv">${val === null ? '<span class="muted">—</span>' : esc(fmtMoney(cur, val)) + (imp ? '<span class="implied">implied</span>' : '')}</span></div>`;
+    const nd = v.netDebt;
+    return `<div class="card fin-card">
+      <div class="section-title" style="margin:0 0 6px"><h3>Valuation &amp; financing</h3><span class="note">${esc(cur)}, millions</span></div>
+      ${row('Enterprise value', v.ev, v.implied.ev)}
+      ${row('Equity value', v.eqv, v.implied.eqv)}
+      ${row(nd !== null && nd < 0 ? 'Net cash' : 'Net debt', nd === null ? null : (nd < 0 ? -nd : nd), v.implied.netDebt)}
+      ${v.stake !== null ? row('Invictus share of equity (' + fmtPct(p.equity) + ')', v.stake) : ''}
+      ${row('Debt financing', p.debtFin)}
+      ${row('Equity financing', p.eqFin)}
+      ${v.finTotal ? `${row('Total financing', r2(v.finTotal))}
+        <div class="split" role="img" aria-label="${Math.round(v.debtPct)}% debt, ${100 - Math.round(v.debtPct)}% equity"><span class="d" style="width:${v.debtPct}%"></span><span class="e" style="width:${100 - v.debtPct}%"></span></div>
+        <div class="split-legend"><span>Debt ${Math.round(v.debtPct)}%</span><span>Equity ${100 - Math.round(v.debtPct)}%</span></div>` : ''}
+    </div>`;
+  }
   function renderDetail(p) {
     const view = $('view-detail');
     const a = projectAlert(p), pr = progressOf(p), tier = projectTier(p);
@@ -1438,7 +1616,7 @@
             ${field('Target equity', p.equity === null ? '' : fmtPct(p.equity))}
             ${field('Owner', avatar(p.ownerId, true), false, true)}
             ${field('Sector', p.sector)}
-            ${field('Location', locationText(p))}
+            ${field('Location', p.country ? `${esc(locationText(p))}<br><button type="button" class="linkbtn" style="padding:4px 0;min-height:32px" data-country="${p.country}">${esc(COUNTRIES[p.country].name)} details →</button>` : '', false, !!p.country)}
             ${field('Region', regionOf(p))}
             ${field('Start date', fmtDate(p.startDate))}
             ${field('Due date', fmtDate(p.dueDate))}
@@ -1446,6 +1624,7 @@
             ${field('Risks / blockers', p.riskNote, true)}
             ${field('Notes', p.notes, true)}
           </div>
+          ${finCard(p)}
         </div>
         <div>
           ${p.lat !== null ? `<div class="card mini-map"><div id="detailMap"></div></div>` : `<div class="card" style="padding:14px"><p class="note" style="margin:0">No map location. Edit the project to choose a country or set a pin.</p></div>`}
@@ -1460,7 +1639,7 @@
       </div>`;
     if (detailMap) { detailMap.destroy(); detailMap = null; }
     if (p.lat !== null) {
-      const m = detailMap = createMap($('detailMap'), { label: 'Location of ' + p.name });
+      const m = detailMap = createMap($('detailMap'), { label: 'Location of ' + p.name, onCountry: openCountry, countryInfo });
       m.setPins([{ id: p.id, title: p.name, lat: p.lat, lng: p.lng, level: a.level, label: dealLabel(p) }]);
       if (p.country) m.setHighlights(new Set([COUNTRIES[p.country].fid]));
       requestAnimationFrame(() => m.focus(p.lat, p.lng, 3));
@@ -1496,6 +1675,7 @@
   pf.elements.risk.innerHTML = options(RISKS, 'On track');
   pf.elements.dealType.innerHTML = options(DEALS, '', 'Not set');
   pf.elements.priority.innerHTML = options(PRIORITIES, 'Medium');
+  pf.elements.currency.innerHTML = options(CURRENCIES, 'USD');
   pf.elements.country.innerHTML = countryOptions('');
 
   function updatePinText() {
@@ -1505,7 +1685,20 @@
   function updateEquityWarn() {
     $('equityWarn').textContent = equityWarning(pf.elements.dealType.value, pf.elements.equity.value === '' ? null : num(pf.elements.equity.value));
   }
-  function openProjectForm(p) {
+  function formNum(name) { const v = pf.elements[name].value.trim(); return v === '' ? null : num(v); }
+  function updateFinHint() {
+    const h = valuationHint({ ev: formNum('ev'), eqv: formNum('eqv'), netDebt: formNum('netDebt') });
+    const el = $('finHint');
+    if (!h) { el.innerHTML = ''; return; }
+    el.innerHTML = `<span${h.warn ? ' class="warn"' : ''}>${esc(h.text)}</span>` + (h.field ? ` <button type="button" class="linkbtn" data-fill="${h.field}" data-value="${h.value}">Use it</button>` : '');
+  }
+  $('finHint').addEventListener('click', e => {
+    const b = e.target.closest('[data-fill]'); if (!b) return;
+    pf.elements[b.getAttribute('data-fill')].value = b.getAttribute('data-value'); updateFinHint();
+  });
+  FIN_FIELDS.forEach(k => pf.elements[k].addEventListener('input', updateFinHint));
+  function openProjectForm(p, preset) {
+    preset = preset || {};
     editingProjectId = p ? p.id : null;
     $('projectDlgTitle').textContent = p ? 'Edit project' : 'New project';
     $('projectErr').textContent = '';
@@ -1519,15 +1712,18 @@
     f.sector.innerHTML = options(db.sectors, p ? p.sector : '', 'Not set');
     f.priority.value = p ? p.priority : 'Medium';
     fillOwnerSelect(f.ownerId, p ? p.ownerId : (ui.dashOwner || ''));
-    f.country.value = p ? p.country : '';
+    f.country.value = p ? p.country : (preset.country || '');
     f.country.dataset.prev = f.country.value;
     f.site.value = p ? p.site : '';
     f.startDate.value = p ? p.startDate : todayStr();
     f.dueDate.value = p ? p.dueDate : '';
     f.nextAction.value = p ? p.nextAction : '';
     f.notes.value = p ? p.notes : '';
-    formPin = { lat: p ? p.lat : null, lng: p ? p.lng : null };
-    updatePinText(); updateEquityWarn();
+    f.currency.value = p ? p.currency : 'USD';
+    FIN_FIELDS.forEach(k => { f[k].value = p && p[k] !== null ? p[k] : ''; });
+    const pc = !p && COUNTRIES[preset.country];
+    formPin = p ? { lat: p.lat, lng: p.lng } : pc ? { lat: pc.lat, lng: pc.lng } : { lat: null, lng: null };
+    updatePinText(); updateEquityWarn(); updateFinHint();
     openDlg($('projectDlg'));
     if (!p) f.name.focus();
   }
@@ -1552,7 +1748,15 @@
     const eqRaw = f.equity.value.trim();
     const equity = eqRaw === '' ? null : num(eqRaw);
     if (eqRaw !== '' && (equity === null || equity < 0 || equity > 100)) { $('projectErr').textContent = 'Target equity must be between 0 and 100.'; f.equity.focus(); return; }
+    const fin = {};
+    for (const k of FIN_FIELDS) {
+      const raw = f[k].value.trim();
+      const n = raw === '' ? null : num(raw);
+      if (raw !== '' && (n === null || (k !== 'netDebt' && n < 0))) { $('projectErr').textContent = 'Valuation and financing figures must be numbers' + (k !== 'netDebt' ? ' of zero or more.' : '.'); f[k].focus(); return; }
+      fin[k] = n;
+    }
     const data = {
+      ...fin, currency: f.currency.value,
       name, stage: f.stage.value, risk: f.risk.value, riskNote: f.riskNote.value.trim(), dealType: f.dealType.value, equity,
       sector: f.sector.value, country: f.country.value, site: f.site.value.trim(), lat: formPin.lat, lng: formPin.lng,
       ownerId: f.ownerId.value === '__new' ? '' : f.ownerId.value, priority: f.priority.value,
@@ -1566,6 +1770,67 @@
       const p = normalizeProject(data);
       db.projects.push(p); save(); closeDlg($('projectDlg')); toast('Project added'); openProject(p.id);
     }
+  });
+
+  // ---------- Country profile ----------
+  const cf = $('countryForm');
+  cf.elements.risk.innerHTML = options(COUNTRY_RISKS, '', 'Not set');
+  let countryMap = null;
+  function renderCountry(code) {
+    const c = COUNTRIES[code], prof = db.countries[code];
+    const projects = sortProjects(db.projects.filter(p => p.country === code));
+    const active = projects.filter(p => p.stage !== 'Dropped');
+    const flagged = active.filter(p => projectAlert(p).level !== 'ok').length;
+    const evs = sumByCurrency(active, p => valuation(p).ev);
+    const f = (k, v) => field(k, v, true);
+    $('view-country').innerHTML = `
+      <h1>${esc(c.name)}</h1>
+      <div class="meta"><span class="badge">${esc(c.region)}</span>${prof && prof.risk ? `<span class="badge ${prof.risk === 'High' ? 'red' : prof.risk === 'Medium' ? 'amber' : ''}">${esc(prof.risk)} country risk</span>` : ''}${prof && prof.currency ? `<span class="badge">${esc(prof.currency)}</span>` : ''}</div>
+      <div class="stat-row">
+        <div class="stat"><div class="n">${active.length}</div><div class="l">Active projects</div></div>
+        <div class="stat"><div class="n" style="${flagged ? 'color:var(--red)' : ''}">${flagged}</div><div class="l">Need attention</div></div>
+        <div class="stat"><div class="n" style="font-size:${evs.length > 1 ? 13 : 16}px">${evs.length ? esc(evs.join(' · ')) : '—'}</div><div class="l">Total EV</div></div>
+      </div>
+      <div class="detail-grid">
+        <div>
+          <div class="section-title"><h2>Country details</h2><button type="button" class="btn small" id="editCountryBtn">${prof ? 'Edit details' : 'Add details'}</button></div>
+          ${prof ? `<div class="fields">
+            ${field('Country risk rating', prof.risk)}
+            ${field('Local currency', prof.currency)}
+            ${f('Key contacts', prof.contacts)}
+            ${f('Regulatory / legal notes', prof.regulatory)}
+            ${f('Market notes', prof.market)}
+            ${f('Other notes', prof.notes)}
+          </div>
+          <p class="note">Last updated ${prof.updatedAt ? esc(new Date(prof.updatedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })) : '—'}</p>` :
+          `<div class="card" style="padding:14px"><p class="note" style="margin:0">No details saved for ${esc(c.name)} yet. Add contacts, regulatory and market notes, and a country risk rating.</p></div>`}
+        </div>
+        <div>
+          <div class="card mini-map"><div id="countryMap"></div></div>
+          <div class="section-title" style="margin-top:20px"><h2>Projects <span class="note">(${projects.length})</span></h2><button type="button" class="btn primary small" id="addCountryProjectBtn">+ Project here</button></div>
+          <div class="list">${projects.length ? projects.map(projectCard).join('') : `<p class="note">No projects in ${esc(c.name)} yet.</p>`}</div>
+        </div>
+      </div>`;
+    if (countryMap) countryMap.destroy();
+    countryMap = createMap($('countryMap'), { label: 'Map of ' + c.name, onPin: showPinSheet, onCountry: openCountry, countryInfo });
+    countryMap.setPins(active.map(p => ({ id: p.id, title: p.name, lat: p.lat, lng: p.lng, level: projectAlert(p).level, label: dealLabel(p) })));
+    countryMap.setHighlights(new Set([c.fid]));
+    requestAnimationFrame(() => countryMap.focus(c.lat, c.lng, 2.5));
+  }
+  function openCountryForm(code) {
+    const prof = db.countries[code] || normalizeCountry({});
+    $('countryDlgTitle').textContent = COUNTRIES[code].name + ' details';
+    ['risk', 'currency', 'contacts', 'regulatory', 'market', 'notes'].forEach(k => { cf.elements[k].value = prof[k]; });
+    openDlg($('countryDlg'));
+  }
+  cf.addEventListener('submit', e => {
+    e.preventDefault();
+    const code = route.id; if (!COUNTRIES[code]) return;
+    const data = {};
+    ['risk', 'currency', 'contacts', 'regulatory', 'market', 'notes'].forEach(k => { data[k] = cf.elements[k].value.replace(/\s+$/, ''); });
+    data.updatedAt = new Date().toISOString();
+    db.countries[code] = normalizeCountry(data);
+    save(); closeDlg($('countryDlg')); render(); toast(COUNTRIES[code].name + ' details saved');
   });
 
   // ---------- Pin picker ----------
@@ -1714,10 +1979,10 @@
     toast('Exported ' + db.projects.length + ' project(s) and ' + db.tasks.length + ' task(s)');
   });
   $('exportProjectsCsv').addEventListener('click', () => {
-    const rows = [['Name', 'Lifecycle', 'Stage', 'Risk status', 'Risks / blockers', 'Deal type', 'Target equity %', 'Sector', 'Region', 'Country', 'City / site', 'Latitude', 'Longitude', 'Owner', 'Priority', 'Start date', 'Due date', 'Urgency', 'Alert', 'Next action', 'Notes', 'Progress %', 'Tasks done', 'Tasks total']];
+    const rows = [['Name', 'Lifecycle', 'Stage', 'Risk status', 'Risks / blockers', 'Deal type', 'Target equity %', 'Currency', 'Enterprise value (m)', 'Equity value (m)', 'Net debt (m)', 'Invictus share of equity (m)', 'Debt financing (m)', 'Equity financing (m)', 'Debt % of financing', 'Sector', 'Region', 'Country', 'City / site', 'Latitude', 'Longitude', 'Owner', 'Priority', 'Start date', 'Due date', 'Urgency', 'Alert', 'Next action', 'Notes', 'Progress %', 'Tasks done', 'Tasks total']];
     sortProjects(db.projects).forEach(p => {
       const pr = progressOf(p);
-      rows.push([p.name, lifecycle(p.stage), p.stage, p.risk, p.riskNote, p.dealType, p.equity === null ? '' : p.equity, p.sector, regionOf(p), p.country ? COUNTRIES[p.country].name : '', p.site, p.lat === null ? '' : p.lat, p.lng === null ? '' : p.lng,
+      rows.push([p.name, lifecycle(p.stage), p.stage, p.risk, p.riskNote, p.dealType, p.equity === null ? '' : p.equity, p.currency, ...(v => [v.ev, v.eqv, v.netDebt, v.stake, p.debtFin, p.eqFin, v.debtPct === null ? null : Math.round(v.debtPct)])(valuation(p)).map(x => x === null ? '' : x), p.sector, regionOf(p), p.country ? COUNTRIES[p.country].name : '', p.site, p.lat === null ? '' : p.lat, p.lng === null ? '' : p.lng,
         personName(p.ownerId), p.priority, p.startDate, p.dueDate, projectTier(p) || '', projectAlert(p).level, p.nextAction, p.notes, pr.pct, pr.done, pr.total]);
     });
     download('invictus-projects-' + todayStr() + '.csv', toCsv(rows), 'text/csv;charset=utf-8');
@@ -1763,6 +2028,7 @@
     const upsert = (list, item) => { const i = list.findIndex(x => x.id === item.id); if (i >= 0) { list[i] = item; updated++; } else { list.push(item); added++; } };
     inc.projects.forEach(p => { p.ownerId = fix(p.ownerId); upsert(db.projects, p); });
     inc.tasks.forEach(t => { t.ownerId = fix(t.ownerId); upsert(db.tasks, t); });
+    Object.keys(inc.countries || {}).forEach(k => { db.countries[k] = inc.countries[k]; });
     pendingImport = null; save(); closeDlg($('importDlg')); location.hash = '#/'; render();
     toast('Imported: ' + added + ' added, ' + updated + ' updated');
   });
@@ -1824,6 +2090,9 @@
     else if (e.target.id === 'tClear') { ['tOwner', 'tProject', 'tStatus', 'tTier', 'tq'].forEach(k => { ui[k] = ''; }); saveUi(); renderTasks(); }
     else if (e.target.id === 'addTaskBtn') openTaskForm(null, route.id);
     else if (e.target.id === 'editProjectBtn') openProjectForm(findProject(route.id));
+    else if (e.target.id === 'editCountryBtn') openCountryForm(route.id);
+    else if (e.target.id === 'addCountryProjectBtn') openProjectForm(null, { country: route.id });
+    else if ((b = e.target.closest('[data-country]'))) openCountry(b.getAttribute('data-country'));
     else if (e.target.id === 'toPortfolioBtn') {
       const p = findProject(route.id);
       if (p && confirm('Mark "' + p.name + '" as closed and move it to the portfolio (stage: Integration planning)?')) { p.stage = 'Integration planning'; touch(p); save(); render(); toast('Moved to portfolio'); }
@@ -1841,7 +2110,8 @@
   document.addEventListener('change', e => {
     const el = e.target;
     if (el.closest('dialog')) return;
-    if (el.id === 'dashOwner') { ui.dashOwner = el.value; saveUi(); renderDashboard(); }
+    if (el.id === 'countryJump') { if (el.value) openCountry(el.value); }
+    else if (el.id === 'dashOwner') { ui.dashOwner = el.value; saveUi(); renderDashboard(); }
     else if (el.hasAttribute('data-f')) { ui[el.getAttribute('data-f')] = el.value; saveUi(); render(); }
     else if (el.id === 'tShowDone') { ui.tShowDone = el.checked; saveUi(); renderTasks(); }
     else if (el.hasAttribute('data-done')) setTaskStatus(el.getAttribute('data-done'), el.checked ? 'Done' : 'To do');
