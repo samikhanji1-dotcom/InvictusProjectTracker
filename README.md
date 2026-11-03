@@ -11,8 +11,9 @@ A mobile-first deal and project tracker for Invictus, styled to the Invictus bra
   - **Red** means blocked or has a critical item, **amber** means at risk or has a high-urgency item, and **blue** means on track. Red pins pulse.
   - Pins that are close together are grouped into a numbered circle. Tap a pin or group to see the projects and why they're flagged.
   - Pinch, double-tap or use the + / − buttons to zoom, and drag to pan when zoomed in. Chips above the map filter by deal type.
+  - **Countries are interactive.** With a mouse, hovering shows the country's name and project count. Tapping or clicking a country opens its **country page**. Small countries can also be opened from the "Country details…" dropdown under the map.
 - **Upcoming deadlines:** project due dates, tasks and milestones in one list, grouped by urgency tier.
-- **Deal mix:** number of projects and average target equity for each deal type.
+- **Deal mix:** number of projects and average target equity for each deal type, plus total enterprise value (per currency).
 - **Scope and owner:** switch between All, Pipeline (deals) and Portfolio (acquired), and filter by owner.
 
 ### Projects
@@ -25,7 +26,18 @@ A mobile-first deal and project tracker for Invictus, styled to the Invictus bra
 - **Region** (North, West, Central, East or Southern Africa) is set automatically from the country.
 - **Map pins:** choosing a country places the pin at that country's capital. Use **Set pin on map** to tap the exact location. Nothing is looked up online.
 - The form warns when equity doesn't fit the deal type, for example a Full Buyout below 100%.
+- **Valuation & financing** (in millions, with a currency per project): enterprise value, equity value, net debt (negative for net cash), debt financing and equity financing.
+  - Enter any two of EV, equity value and net debt and the form offers the third, using EV = equity value + net debt. It warns if all three don't add up.
+  - The project page shows Invictus's share of equity (target equity % × equity value), total financing and the debt/equity split.
 - The list is sorted by due date, with search and filters for stage, deal type, alert level, region, sector and owner.
+
+### Country pages
+Each African country has a page showing:
+- active projects, how many need attention, and total EV;
+- a map of the country with its projects;
+- country details you can edit: country risk rating (Low, Medium or High), local currency, key contacts, regulatory/legal notes, market notes and other notes.
+
+Use **+ Project here** to start a project already set to that country. A project's page links to its country page.
 
 ### Tasks
 - Create tasks, assign an owner, set a due date, status (To do, In progress, Blocked, Done) and priority, mark milestones, and link each task to a project.
@@ -66,7 +78,7 @@ All data is saved in your browser's **localStorage** under the key `invictusTrac
 
 Open **Settings → Backup & restore**:
 
-- **Export JSON (full backup):** everything, including people, sectors and tasks. Save it somewhere private, such as iCloud Drive, Google Drive or a password manager.
+- **Export JSON (full backup):** everything, including people, sectors, tasks and country details. Save it somewhere private, such as iCloud Drive, Google Drive or a password manager.
 - **Projects CSV / Tasks CSV:** spreadsheet reports. These can't be imported back.
 - **Import JSON…:** load a backup. Choose **Merge** to add or update by ID (people with the same name are matched) or **Replace** to swap out everything (asks for confirmation). Backups from the first version of the tracker can also be imported.
 
